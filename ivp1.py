@@ -178,8 +178,7 @@ def readyboards(ip,encodergroup,decodergroup):
 
 
 
-
-
+'''
 #write all ivps borads to database;
 def allivpsboards():
     cursor.execute('select ivpid from infoofivp')
@@ -212,13 +211,52 @@ def allivpsboards():
         print red('insert into deviceworkingboard (ivpid,encodergroup,decodergroup) values'+"("+"'"+str(k)+"'"+","+"'"+json.dumps(result1[1])+"'"+","+"'"+json.dumps(result1[2])+"'"+")")
         cursor.execute('insert into deviceworkingboard (ip,ivpid,encodergroup,decodergroup) values'+"("+"'"+str(ip)+"'"+","+"'"+k+"'"+","+"'"+json.dumps(result1[1])+"'"+","+"'"+json.dumps(result1[2])+"'"+")")        
         #cursor.execute("INSERT INTO infoofivp  (ivpid,ip,user,phone,addressofdevice) VALUES" +"("+"'"+str(registerivpid)+"'"+","+"'"+str(registerip)+"'"+","+"'"+str(registeruser)+"'"+","+"'"+str(registerphone)+"'"+","+"'"+str(registeraddress)+"'" +')')
+allivpsboards()
+'''
+
+import threading
+
+def worker(ivpdid):
+    ip=paserip(str(ivpid))
+    #result0=readyboards(str(ip),allencodergroup,alldecodergroup)
+    try:
+        print red('are you ok-------------')
+        info=readyboards(str(ip),allencodergroup,alldecodergroup)
+        tmp=info[0] 
+        all=tmp['Body']
+        boardsgroup=[i for i in all.keys() if 'status' not in i]
+        encoder=[d for d in boardsgroup if all[str(d)] in allencodergroup]
+        decoder=[d for d in boardsgroup if all[str(d)] in alldecodergroup]
+        print encoder,decoder
+        finalgroup={'encoder':encoder,'decoder':decoder}
+        #encoder={k:'working' for k in encoder}
+        #decoder={k:'working' for k in decoder}
+        result1=['0',encoder,decoder]
+           
+
+    except:
+        result1=['0','','']
+        print red('insert into deviceworkingboard (ivpid,encodergroup,decodergroup) values'+"("+"'"+str(k)+"'"+","+"'"+json.dumps(result1[1])+"'"+","+"'"+json.dumps(result1[2])+"'"+")")
+        cursor.execute('insert into deviceworkingboard (ip,ivpid,encodergroup,decodergroup) values'+"("+"'"+str(ip)+"'"+","+"'"+k+"'"+","+"'"+json.dumps(result1[1])+"'"+","+"'"+json.dumps(result1[2])+"'"+")")        
+        #cursor.execute("INSERT INTO infoofivp  (ivpid,ip,user,phone,addressofdevice) VALUES" +"("+"'"+str(registerivpid)+"'"+","+"'"+str(registerip)+"'"+","+"'"+str(registeruser)+"'"+","+"'"+str(registerphone)+"'"+","+"'"+str(registeraddress)+"'" +')')
+
+
+
+def threadmode():
+    cursor.execute('select ivpid from infoofivp')
+    allivp=getrow()
+    print(allivp)
+    ivpidgroup=[allivp[i]['ivpid'] for i in allivp.keys()]
+    threads = []
+    for i in range(len(ivpidgroup)):
+        t = threading.Thread(target=worker, args=(ivpid,))
+        threads.append(t)
+        t.start()
 
 
 
 
-
-#allivpsboards()
-
+threadmode()
 
 #give positions info  to front
 
